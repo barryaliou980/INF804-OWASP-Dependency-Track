@@ -1,24 +1,51 @@
 import { CVEResult } from './types';
 
+const SEVERITY_WEIGHTS = {
+  CRITICAL: 100,
+  HIGH: 40,
+  MEDIUM: 10,
+  LOW: 3,
+  NONE: 0,
+};
+
 export function calculateRiskScore(vulnerabilities: CVEResult[]): number {
-  if (vulnerabilities.length === 0) return 0.0;
+  if (vulnerabilities.length === 0) {
+    return 0.0;
+  }
 
-  // Extraire tous les scores CVSS
-  const scores = vulnerabilities.map(v => v.cvssScore).sort((a, b) => b - a);
+  let rawRisk = 0;
 
-  const maxScore = scores[0] || 0;
-  
-  // Prendre les 5 plus hauts scores (ou moins si < 5 vulnérabilités)
-  const top5 = scores.slice(0, 5);
-  const avgTop5 = top5.length > 0 
-    ? top5.reduce((sum, score) => sum + score, 0) / top5.length 
-    : 0;
+  for (const vuln of vulnerabilities) {
+    // Poids selon la sévérité
+    const severityWeight =
+      SEVERITY_WEIGHTS[vuln.severity] || 0;
 
-  // Formule : max(CVSS_scores) × 0.6 + moyenne_top5 × 0.4
-  const rawScore = (maxScore * 0.6) + (avgTop5 * 0.4);
-  
-  // Plafonner à 10.0 au cas où, et arrondir à 1 décimale
-  const finalScore = Math.min(10.0, Math.round(rawScore * 10) / 10);
-  
-  return finalScore;
+    // Facteur CVSS (0 → 1)
+    const cvssFactor =
+      (vuln.cvssScore || 0) / 10;
+
+    // Calcul du risque
+    const risk =
+      severityWeight * cvssFactor;
+
+    rawRisk += risk;
+  }
+
+  // Risque maximum théorique
+  const maxRisk =
+    vulnerabilities.length * 100;
+
+  // Score logarithmique normalisé sur 10
+  const normalizedScore =
+    10 *
+    (
+      Math.log(1 + rawRisk) /
+      Math.log(1 + maxRisk)
+    );
+
+  // Arrondi à 1 décimale
+  return Math.min(
+    10,
+    Math.round(normalizedScore * 10) / 10
+  );
 }
