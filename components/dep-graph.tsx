@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useRef, useState, useCallback, useMemo } from 'react';
+import React, { useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import { ScanResult, GraphNode, GraphEdge } from '@/lib/types';
 import { CveTooltip } from './cve-tooltip';
+import { Maximize, Minimize } from 'lucide-react';
 
 interface DepGraphProps {
   data: ScanResult;
@@ -13,6 +14,7 @@ export function DepGraph({ data }: DepGraphProps) {
   const fgRef = useRef<any>();
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [filter, setFilter] = useState<'ALL' | 'CRITICAL_ONLY'>('ALL');
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Préparation des données pour le graphe
   const graphData = useMemo(() => {
@@ -25,14 +27,14 @@ export function DepGraph({ data }: DepGraphProps) {
         cveIds: []
       }
     ];
-    
+
     const links: GraphEdge[] = [];
 
     data.dependencies.forEach(item => {
       // Identifier la sévérité max
       let maxSeverity: any = 'SAFE';
       let maxScore = 0;
-      
+
       item.vulnerabilities.forEach(v => {
         if (v.cvssScore > maxScore) {
           maxScore = v.cvssScore;
@@ -46,7 +48,7 @@ export function DepGraph({ data }: DepGraphProps) {
       }
 
       const nodeId = item.dependency.name;
-      
+
       nodes.push({
         id: nodeId,
         name: item.dependency.name,
@@ -97,33 +99,71 @@ export function DepGraph({ data }: DepGraphProps) {
     }
   }, []);
 
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
+
+  // Recentrer automatiquement quand on change de mode
+  useEffect(() => {
+    if (fgRef.current) {
+      // Attendre que la transition CSS et le redimensionnement soient terminés
+      setTimeout(() => {
+        fgRef.current.zoomToFit(400, 50);
+        fgRef.current.centerAt(0, 0, 400);
+      }, 350); // Le CSS transition est de 300ms
+    }
+  }, [isFullscreen]);
+
   return (
-    <div className="relative w-full h-[600px] border border-gray-200 rounded-xl overflow-hidden bg-white">
+    <div className={`relative overflow-hidden transition-all duration-300 ${
+      isFullscreen 
+        ? 'fixed inset-0 z-[100] w-full h-full max-w-[100vw] max-h-[100vh] m-0 rounded-none border-0 bg-slate-900 flex flex-col' 
+        : 'w-full h-[600px] border border-gray-700 rounded-xl bg-slate-900 flex flex-col'
+    }`}>
       {/* Toolbar */}
       <div className="absolute top-4 left-4 z-10 flex gap-2">
-        <button 
+        <button
           onClick={() => setFilter('ALL')}
-          className={`px-3 py-1.5 text-xs font-medium rounded-md shadow-sm border ${filter === 'ALL' ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+          className={`px-3 py-1.5 text-xs font-medium rounded-md shadow-sm border transition-colors ${
+            filter === 'ALL' 
+              ? 'bg-blue-600 border-blue-500 text-white' 
+              : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+          }`}
         >
           Tout afficher
         </button>
-        <button 
+        <button
           onClick={() => setFilter('CRITICAL_ONLY')}
-          className={`px-3 py-1.5 text-xs font-medium rounded-md shadow-sm border ${filter === 'CRITICAL_ONLY' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+          className={`px-3 py-1.5 text-xs font-medium rounded-md shadow-sm border transition-colors ${
+            filter === 'CRITICAL_ONLY' 
+              ? 'bg-red-600 border-red-500 text-white' 
+              : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+          }`}
         >
           Critical / High seulement
         </button>
-        <button 
+        <button
           onClick={() => fgRef.current?.zoomToFit(400)}
-          className="px-3 py-1.5 text-xs font-medium rounded-md shadow-sm border bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+          className="px-3 py-1.5 text-xs font-medium rounded-md shadow-sm border bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 transition-colors"
         >
           Réinitialiser vue
         </button>
       </div>
 
+      {/* Bouton Plein Écran */}
+      <div className="absolute top-4 right-4 z-10">
+        <button
+          onClick={toggleFullscreen}
+          className="p-2 border rounded-md shadow-sm bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 transition-colors"
+          title={isFullscreen ? "Quitter le plein écran" : "Passer en plein écran"}
+        >
+          {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+        </button>
+      </div>
+
       {/* Légende */}
-      <div className="absolute bottom-4 left-4 z-10 bg-white/90 p-3 rounded-lg border border-gray-200 shadow-sm text-xs backdrop-blur-sm">
-        <h4 className="font-semibold text-gray-700 mb-2">Légende</h4>
+      <div className="absolute bottom-4 left-4 z-10 bg-slate-800/80 p-3 rounded-lg border border-slate-700 shadow-sm text-xs backdrop-blur-md text-slate-300">
+        <h4 className="font-semibold text-slate-200 mb-2">Légende</h4>
         <div className="space-y-1.5">
           <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-[#E24B4A] shadow-[0_0_8px_rgba(226,75,74,0.6)]"></span> Critical</div>
           <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-[#EF9F27]"></span> High</div>
