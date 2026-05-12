@@ -48,18 +48,21 @@ export function DepGraph({ data }: DepGraphProps) {
       }
 
       const nodeId = item.dependency.name;
-
-      nodes.push({
-        id: nodeId,
-        name: item.dependency.name,
-        version: item.dependency.version,
-        severity: maxSeverity,
-        cvssScore: maxScore > 0 ? maxScore : undefined,
-        cveIds: item.vulnerabilities.map(v => v.id)
-      });
+      
+      // Éviter les doublons de noeuds (au cas où plusieurs versions existent)
+      if (!nodes.some(n => n.id === nodeId)) {
+        nodes.push({
+          id: nodeId,
+          name: item.dependency.name,
+          version: item.dependency.version,
+          severity: maxSeverity,
+          cvssScore: maxScore > 0 ? maxScore : undefined,
+          cveIds: item.vulnerabilities.map(v => v.id)
+        });
+      }
 
       links.push({
-        source: 'root',
+        source: item.dependency.parent || 'root',
         target: nodeId
       });
     });

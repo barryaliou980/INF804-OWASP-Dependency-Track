@@ -16,8 +16,17 @@ export function parsePackageJson(content: string, isLockFile = false): Dependenc
         for (const [path, pkgInfo] of Object.entries(data.packages)) {
           if (!path || path === '') continue; // Le projet racine
           
-          const nameMatch = path.match(/node_modules\/(.+)$/);
-          const name = nameMatch ? nameMatch[1] : path;
+          const parts = path.split('node_modules/');
+          const name = parts[parts.length - 1]; // le nom du paquet est toujours à la fin
+          
+          let parent: string | undefined = undefined;
+          if (parts.length > 2) {
+            // S'il y a plus d'un node_modules/, le parent est l'élément juste avant
+            // Ex: "node_modules/express/node_modules/accepts" -> parts = ["", "express/", "accepts"]
+            const parentPart = parts[parts.length - 2];
+            parent = parentPart.replace(/\/$/, ''); // enlever le slash de fin
+          }
+
           const pkg = pkgInfo as any;
 
           if (pkg.version) {
@@ -25,24 +34,32 @@ export function parsePackageJson(content: string, isLockFile = false): Dependenc
               name,
               version: cleanVersion(pkg.version),
               ecosystem: 'npm',
-              isDev: pkg.dev || false
+              isDev: pkg.dev || false,
+              parent
             });
           }
         }
       } 
-      // Structure package-lock.json v1
+      // Structure package-lock.json v1 (récursif)
       else if (data.dependencies) {
-        for (const [name, info] of Object.entries(data.dependencies)) {
-          const pkg = info as any;
-          if (pkg.version) {
-            dependencies.push({
-              name,
-              version: cleanVersion(pkg.version),
-              ecosystem: 'npm',
-              isDev: pkg.dev || false
-            });
+        const parseLockV1 = (deps: any, parentName?: string) => {
+          for (const [name, info] of Object.entries(deps)) {
+            const pkg = info as any;
+            if (pkg.version) {
+              dependencies.push({
+                name,
+                version: cleanVersion(pkg.version),
+                ecosystem: 'npm',
+                isDev: pkg.dev || false,
+                parent: parentName
+              });
+              if (pkg.dependencies) {
+                parseLockV1(pkg.dependencies, name);
+              }
+            }
           }
-        }
+        };
+        parseLockV1(data.dependencies);
       }
     } else {
       // Structure package.json classique

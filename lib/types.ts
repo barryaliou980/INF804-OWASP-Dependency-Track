@@ -5,6 +5,7 @@ export interface Dependency {
   version: string;
   ecosystem: Ecosystem;
   isDev?: boolean;
+  parent?: string; // Nom du paquet parent (pour les sous-dépendances)
 }
 
 export type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'NONE';
