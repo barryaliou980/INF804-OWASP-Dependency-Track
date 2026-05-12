@@ -183,7 +183,7 @@ export function DepGraph({ data }: DepGraphProps) {
         linkColor={(link: any) => {
           // Couleur héritée de la cible
           const targetNode = typeof link.target === 'object' ? link.target : graphData.nodes.find(n => n.id === link.target);
-          return targetNode ? getNodeColor(targetNode.severity) : '#E5E7EB';
+          return targetNode ? getNodeColor(targetNode.severity) : '#334155';
         }}
         linkWidth={(link: any) => {
           const targetNode = typeof link.target === 'object' ? link.target : graphData.nodes.find(n => n.id === link.target);
