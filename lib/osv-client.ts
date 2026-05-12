@@ -221,10 +221,45 @@ async function fetchBatchWithRetry(queries: OSVQuery[], retries = 3): Promise<Re
   throw new Error('OSV API: max retries reached');
 }
 
+async function fetchVulnDetails(vulnId: string, retries = 3): Promise<Record<string, any> | null> {
+  let attempt = 0;
+  let backoffMs = 1000;
+
+  while (attempt < retries) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      
+      const response = await fetch(`https://api.osv.dev/v1/vulns/${vulnId}`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        if (response.status === 404) return null;
+        throw new Error(`OSV API returned ${response.status} for ${vulnId}`);
+      }
+      return await response.json();
+    } catch (error) {
+      attempt++;
+      if (attempt >= retries) {
+        console.error(`Erreur fetch détails vuln ${vulnId}:`, error);
+        return null;
+      }
+      await delay(backoffMs);
+      backoffMs *= 2;
+    }
+  }
+  return null;
+}
+
 export async function queryOSV(dependencies: Dependency[]): Promise<Array<{ dependency: Dependency; vulnerabilities: CVEResult[] }>> {
   const results: Array<{ dependency: Dependency; vulnerabilities: CVEResult[] }> = [];
 
   const validDeps = dependencies.filter(d => d.version !== 'unknown');
+
+  // Cache global pour éviter de requêter plusieurs fois le même CVE
+  const globalVulnDetailsCache = new Map<string, Record<string, any>>();
 
   for (let i = 0; i < validDeps.length; i += BATCH_SIZE) {
     const batch = validDeps.slice(i, i + BATCH_SIZE);
@@ -237,10 +272,37 @@ export async function queryOSV(dependencies: Dependency[]): Promise<Array<{ depe
       const data = await fetchBatchWithRetry(queries);
 
       if (data && data.results) {
+        // Collecter tous les IDs uniques de ce batch
+        const vulnIdsToFetch = new Set<string>();
+        data.results.forEach((r: any) => {
+          if (r.vulns) {
+            r.vulns.forEach((v: any) => {
+              if (!globalVulnDetailsCache.has(v.id)) {
+                vulnIdsToFetch.add(v.id);
+              }
+            });
+          }
+        });
+
+        // Fetch les détails pour chaque ID par lots de 10
+        const idsArray = Array.from(vulnIdsToFetch);
+        for (let j = 0; j < idsArray.length; j += 10) {
+           const chunk = idsArray.slice(j, j + 10);
+           const promises = chunk.map(async (id) => {
+             const detail = await fetchVulnDetails(id);
+             if (detail) globalVulnDetailsCache.set(id, detail);
+           });
+           await Promise.all(promises);
+        }
+
         data.results.forEach((result: Record<string, any>, index: number) => {
           const dep = batch[index];
           const vulns = result.vulns
-            ? result.vulns.map(parseOSVVuln)
+            ? result.vulns.map((v: any) => {
+                // Utiliser les détails complets s'ils ont été récupérés, sinon l'objet basique
+                const fullVuln = globalVulnDetailsCache.get(v.id) || v;
+                return parseOSVVuln(fullVuln);
+              })
             : [];
 
           results.push({
