@@ -6,46 +6,56 @@ const SEVERITY_WEIGHTS = {
   MEDIUM: 10,
   LOW: 3,
   NONE: 0,
-};
+} as const;
 
+/**
+ * Engine de scoring inspiré des approches SCA (Snyk / Dependency-Track)
+ */
 export function calculateRiskScore(vulnerabilities: CVEResult[]): number {
-  if (vulnerabilities.length === 0) {
-    return 0.0;
-  }
+  if (!vulnerabilities.length) return 0.0;
 
-  let rawRisk = 0;
+  let totalRisk = 0;
 
   for (const vuln of vulnerabilities) {
-    // Poids selon la sévérité
-    const severityWeight =
-      SEVERITY_WEIGHTS[vuln.severity] || 0;
+    const weight = SEVERITY_WEIGHTS[vuln.severity] ?? 0;
 
-    // Facteur CVSS (0 → 1)
-    const cvssFactor =
-      (vuln.cvssScore || 0) / 10;
+    // CVSS normalisé (0 → 1)
+    const cvssFactor = clamp(vuln.cvssScore / 10, 0, 1);
 
-    // Calcul du risque
-    const risk =
-      severityWeight * cvssFactor;
+    // Score de base
+    let risk = weight * cvssFactor;
 
-    rawRisk += risk;
+    // BONUS: criticité CVSS réelle (accent sur > 7)
+    if (vuln.cvssScore >= 9) risk *= 1.3;
+    else if (vuln.cvssScore >= 7) risk *= 1.15;
+
+    totalRisk += risk;
   }
 
-  // Risque maximum théorique
-  const maxRisk =
-    vulnerabilities.length * 100;
+  /**
+   * NORMALISATION INDUSTRY-LIKE
+   * - évite saturation à 10
+   * - prend en compte la taille du projet
+   */
+  const n = vulnerabilities.length;
 
-  // Score logarithmique normalisé sur 10
-  const normalizedScore =
-    10 *
-    (
-      Math.log(1 + rawRisk) /
-      Math.log(1 + maxRisk)
-    );
+  // MaxRisk dynamique (croissance logarithmique)
+  const maxRisk = 100 * Math.log1p(n) + 50;
 
-  // Arrondi à 1 décimale
-  return Math.min(
-    10,
-    Math.round(normalizedScore * 10) / 10
-  );
+  // Score logarithmique (standard dans les moteurs de risk)
+  const score =
+    10 * (Math.log1p(totalRisk) / Math.log1p(maxRisk));
+
+  return round(clamp(score, 0, 10), 1);
+}
+
+/**
+ * Helpers
+ */
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function round(value: number, decimals: number) {
+  return Number(value.toFixed(decimals));
 }
