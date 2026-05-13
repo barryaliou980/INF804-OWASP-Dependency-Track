@@ -23,17 +23,18 @@ export function ResultsDashboard({ data }: ResultsDashboardProps) {
   ];
 
   // Aplatir les vulnérabilités pour le tableau
-  const allVulns = data.dependencies.flatMap(d => 
+  const allVulns = data.dependencies.flatMap(d =>
     d.vulnerabilities.map(v => ({
       ...v,
       package: d.dependency.name,
       packageVersion: d.dependency.version
     }))
   );
+  console.log(data)
 
   // Filtrage
-  const filteredVulns = filterSeverity === 'ALL' 
-    ? allVulns 
+  const filteredVulns = filterSeverity === 'ALL'
+    ? allVulns
     : allVulns.filter(v => v.severity === filterSeverity);
 
   // Tri par CVSS décroissant
@@ -48,7 +49,7 @@ export function ResultsDashboard({ data }: ResultsDashboardProps) {
             <ShieldAlert className="w-6 h-6" />
             <span className="font-semibold">Risque critique détecté — Action immédiate requise</span>
           </div>
-          <button 
+          <button
             onClick={() => router.push(`/results/${data.scanId}/graph`)}
             className="text-white text-sm underline hover:text-red-100"
           >
@@ -63,7 +64,7 @@ export function ResultsDashboard({ data }: ResultsDashboardProps) {
         <div className="bg-white rounded-xl border border-gray-200 p-6 flex flex-col items-center justify-center shadow-sm">
           <span className="text-sm font-medium text-gray-500 mb-2">Score de risque global</span>
           <div className="text-5xl font-black tabular-nums tracking-tight text-gray-900">
-            {data.globalRiskScore.toFixed(1)}
+            {data.globalRiskScore}
             <span className="text-xl text-gray-400 font-medium ml-1">/10</span>
           </div>
         </div>
@@ -88,14 +89,14 @@ export function ResultsDashboard({ data }: ResultsDashboardProps) {
 
       {/* Tableau CVE */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col md:flex-row">
-        
+
         {/* Partie Gauche: Tableau */}
         <div className={`flex-1 transition-all duration-300 ${selectedCve ? 'md:w-2/3 border-r border-gray-200' : 'w-full'}`}>
           <div className="px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
             <h3 className="font-semibold text-gray-900">Vulnérabilités détectées ({allVulns.length})</h3>
-            
+
             <div className="flex items-center gap-3">
-              <select 
+              <select
                 className="text-sm border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={filterSeverity}
                 onChange={(e) => setFilterSeverity(e.target.value)}
@@ -129,8 +130,8 @@ export function ResultsDashboard({ data }: ResultsDashboardProps) {
                   </tr>
                 ) : (
                   sortedVulns.map((vuln, idx) => (
-                    <tr 
-                      key={`${vuln.id}-${idx}`} 
+                    <tr
+                      key={`${vuln.id}-${idx}`}
                       className={`hover:bg-gray-50 cursor-pointer transition-colors ${selectedCve?.id === vuln.id ? 'bg-blue-50/50' : ''}`}
                       onClick={() => setSelectedCve(vuln)}
                     >
@@ -169,7 +170,7 @@ export function ResultsDashboard({ data }: ResultsDashboardProps) {
                 <h4 className="font-bold text-gray-900 text-lg mb-1">{selectedCve.id}</h4>
                 <SeverityBadge severity={selectedCve.severity} />
               </div>
-              <button 
+              <button
                 onClick={() => setSelectedCve(null)}
                 className="text-gray-400 hover:text-gray-600 p-1"
               >
@@ -208,9 +209,9 @@ export function ResultsDashboard({ data }: ResultsDashboardProps) {
                   <ul className="space-y-2 bg-white border border-gray-200 p-3 rounded-md">
                     {selectedCve.references.slice(0, 5).map((ref: string, idx: number) => (
                       <li key={idx}>
-                        <a 
-                          href={ref} 
-                          target="_blank" 
+                        <a
+                          href={ref}
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1.5 truncate"
                         >
@@ -227,9 +228,9 @@ export function ResultsDashboard({ data }: ResultsDashboardProps) {
                   </ul>
                 </div>
               )}
-              
+
               <div className="pt-4 flex gap-3">
-                 <button 
+                <button
                   onClick={() => router.push(`/results/${data.scanId}/graph`)}
                   className="flex-1 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md text-sm font-medium transition-colors"
                 >

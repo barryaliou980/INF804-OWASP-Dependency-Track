@@ -128,7 +128,7 @@ export const demoScanResult: ScanResult = {
     })),
     ...generateDeps(65, 'PyPI', true)
   ],
-  globalRiskScore: 8.9,
+  globalRiskScore: 0,
   summary: {
     critical: 3,
     high: 7,

@@ -91,6 +91,7 @@ export async function GET(request: Request) {
         });
 
         const globalRiskScore = calculateRiskScore(allVulns);
+        console.log("globalRiskScore", globalRiskScore);
 
         const scanResult = {
           scanId,
