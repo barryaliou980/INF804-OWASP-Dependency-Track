@@ -43,7 +43,7 @@ export default function Home() {
               OWASP Dependency-Track
             </h3>
             <p className="font-mono text-xs text-emerald-600 tracking-wide">
-              // Démo attendue
+              Démo
             </p>
           </div>
         </div>

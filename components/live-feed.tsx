@@ -24,60 +24,92 @@ export function LiveFeed({ events }: LiveFeedProps) {
   }, [events]);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col h-96">
-      <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 flex justify-between items-center">
-        <h3 className="font-semibold text-gray-900 text-sm flex items-center gap-2">
-          Flux en direct
+    <div className="cyber-card overflow-hidden flex flex-col h-[384px] bg-[var(--card-bg)] border-[var(--card-border)] relative">
+      {/* Decorative corners */}
+      <div className="absolute top-2 left-2 w-2.5 h-2.5 border-t border-l border-[var(--card-border)] pointer-events-none" />
+      <div className="absolute top-2 right-2 w-2.5 h-2.5 border-t border-r border-[var(--card-border)] pointer-events-none" />
+
+      {/* Header bar */}
+      <div className="bg-[var(--panel-bg)] border-b border-[var(--card-border)] px-4 py-3 flex justify-between items-center">
+        <h3 className="font-bold text-[var(--text-primary)] text-xs uppercase tracking-widest flex items-center gap-2 font-mono">
+          Console de Sécurité
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
           </span>
         </h3>
-        <span className="text-xs text-gray-500">{events.length} événements</span>
+        <span className="text-xs font-mono font-bold text-accent-700 dark:text-accent-400 bg-accent/10 px-2 py-0.5 rounded border border-accent/20 shadow-sm">
+          {events.length} événements
+        </span>
       </div>
       
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 font-mono text-sm">
-        {events.map((event) => (
-          <div key={event.id} className="flex items-start gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <span className="text-gray-400 text-xs mt-0.5 whitespace-nowrap">
-              {new Date(event.timestamp).toISOString().split('T')[1].substring(0, 8)}
-            </span>
-            
-            {event.type === 'progress' && event.status === 'safe' && (
-              <>
-                <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
-                <span className="text-gray-600">
-                  Analyse <span className="text-gray-900 font-medium">{event.package}</span> : <span className="text-green-600">Aucune vulnérabilité</span>
-                </span>
-              </>
-            )}
-
-            {event.type === 'vuln' && (
-              <>
-                {event.severity === 'CRITICAL' ? (
-                  <ShieldAlert className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                ) : (
-                  <AlertTriangle className="w-4 h-4 text-orange-500 mt-0.5 shrink-0" />
-                )}
-                <span className="text-gray-800">
-                  <span className="font-medium">{event.package}</span> vulnérable à{' '}
-                  <span className={event.severity === 'CRITICAL' ? 'text-red-600 font-bold' : 'text-orange-600 font-bold'}>
-                    {event.cve}
-                  </span>
-                </span>
-              </>
-            )}
-
-            {event.type === 'progress' && event.status === 'info' && (
-              <>
-                <div className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center mt-0.5 shrink-0">
-                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                </div>
-                <span className="text-gray-600 italic">{event.package}</span>
-              </>
-            )}
+      {/* Event scrolling logs */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 font-mono text-[13px] text-[var(--text-secondary)] bg-[var(--bg-main)]">
+        {events.length === 0 ? (
+          <div className="h-full flex items-center justify-center text-[var(--text-muted)] italic text-xs">
+            En attente de démarrage de l&apos;audit...
           </div>
-        ))}
+        ) : (
+          events.map((event) => (
+            <div key={event.id} className="flex items-start gap-2.5 animate-fade-in">
+              <span className="text-[var(--text-muted)] text-[11px] mt-0.5 shrink-0 select-none">
+                [{new Date(event.timestamp).toISOString().split('T')[1].substring(0, 8)}]
+              </span>
+              
+              {event.type === 'progress' && event.status === 'safe' && (
+                <div className="flex items-start gap-2 text-[var(--text-secondary)]">
+                  <CheckCircle2 className="w-4 h-4 text-accent dark:text-accent-400 shrink-0 mt-0.5" />
+                  <span>
+                    Audit <span className="text-[var(--text-primary)] font-semibold">{event.package}</span> : <span className="text-accent-700 dark:text-accent-400 font-medium">Aucune menace</span>
+                  </span>
+                </div>
+              )}
+
+              {event.type === 'vuln' && (
+                <div className="flex items-start gap-2">
+                  {event.severity === 'CRITICAL' ? (
+                    <>
+                      <ShieldAlert className="w-4 h-4 text-rose-500 shrink-0 mt-0.5 text-glow-rose" />
+                      <span className="text-[var(--text-secondary)]">
+                        <span className="font-semibold text-[var(--text-primary)]">{event.package}</span> vulnérable &rarr;{' '}
+                        <span className="text-rose-600 dark:text-rose-400 font-bold text-glow-rose">
+                          {event.cve}
+                        </span>
+                        <span className="ml-2 px-1.5 py-0.2 text-[9px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 rounded">
+                          CRITICAL
+                        </span>
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5 text-glow-amber" />
+                      <span className="text-[var(--text-secondary)]">
+                        <span className="font-semibold text-[var(--text-primary)]">{event.package}</span> vulnérable &rarr;{' '}
+                        <span className="text-amber-600 dark:text-amber-400 font-bold text-glow-amber">
+                          {event.cve}
+                        </span>
+                        <span className="ml-2 px-1.5 py-0.2 text-[9px] font-bold bg-amber-500/10 text-amber-650 dark:text-amber-400 border border-amber-500/20 rounded">
+                          {event.severity || 'HIGH'}
+                        </span>
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {event.type === 'progress' && event.status === 'info' && (
+                <div className="flex items-start gap-2 text-[var(--text-muted)]">
+                  <div className="w-4 h-4 rounded-full bg-[var(--bg-main)] border border-[var(--card-border)] flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-accent dark:bg-accent-400 animate-pulse"></div>
+                  </div>
+                  <span>
+                    Audit en cours : <span className="text-accent-700 dark:text-accent-400">{event.package}</span>
+                  </span>
+                </div>
+              )}
+            </div>
+          ))
+        )}
         <div ref={endOfFeedRef} />
       </div>
     </div>

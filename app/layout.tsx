@@ -3,6 +3,7 @@ import { JetBrains_Mono, Outfit } from "next/font/google";
 import "./globals.css";
 import { ShieldCheck } from "lucide-react";
 import { ToastProvider } from "@/components/toast-provider";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-display" });
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
@@ -19,26 +20,44 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className={`${outfit.variable} ${jetbrains.variable}`}>
-      <body className="font-sans min-h-screen flex flex-col bg-[hsl(40,20%,97%)]">
-        <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-xl">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            try {
+              const theme = localStorage.getItem('theme');
+              if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+              } else {
+                document.documentElement.classList.remove('dark');
+              }
+            } catch (e) {}
+          })()
+        `}} />
+      </head>
+      <body className="font-sans min-h-screen flex flex-col selection:bg-accent/20 selection:text-accent-400">
+        <header className="sticky top-0 z-50 w-full border-b border-[var(--header-border)] bg-[var(--header-bg)] backdrop-blur-md shadow-md shadow-black/5 dark:shadow-black/20 transition-all duration-300">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-            <a href="/" className="flex items-center gap-3">
-              <div className="bg-emerald-600 p-2 rounded-lg shadow-md">
+            <a href="/" className="flex items-center gap-3 group">
+              <div className="bg-gradient-to-br from-accent to-accent-700 p-2 rounded-lg shadow-lg shadow-accent/20 transition-transform group-hover:scale-105 border border-accent-400/20">
                 <ShieldCheck className="w-5 h-5 text-white" />
               </div>
-              <span className="text-lg font-bold tracking-tight text-gray-900 font-[family-name:var(--font-display)]">DepScan</span>
-              <span className="px-2 py-1 bg-emerald-50 text-emerald-700 text-[10px] uppercase tracking-wider font-bold rounded-md ml-1 border border-emerald-200 font-mono">
+              <span className="text-lg font-black tracking-tight text-[var(--text-primary)] font-[family-name:var(--font-display)] transition-colors group-hover:text-accent dark:group-hover:text-accent-400">
+                Dep<span className="text-accent dark:text-accent-400">Scan</span>
+              </span>
+              <span className="px-2 py-0.5 bg-accent/10 text-accent dark:text-accent-400 text-[10px] uppercase tracking-wider font-bold rounded border border-accent/20 font-mono ml-1">
                 INF804
               </span>
             </a>
 
-            <div className="flex items-center gap-4">
-              <a href="/guide" className="text-sm font-medium text-gray-500 hover:text-emerald-600 transition-colors">
+            <div className="flex items-center gap-6">
+              <a href="/guide" className="text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-accent dark:hover:text-accent-400 transition-colors py-1 relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-accent hover:after:w-full after:transition-all">
                 GitHub Actions
               </a>
-              <a href="https://osv.dev" target="_blank" rel="noreferrer" className="text-sm font-medium text-gray-500 hover:text-emerald-600 transition-colors font-mono">
-                OSV API
+              <a href="https://osv.dev" target="_blank" rel="noreferrer" className="text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-accent dark:hover:text-accent-400 transition-colors py-1 font-mono flex items-center gap-1">
+                OSV API <span className="text-[10px] text-accent/80 dark:text-accent-400 font-bold shrink-0">v1</span>
               </a>
+              <div className="w-px h-5 bg-slate-200 dark:bg-slate-800 shrink-0" />
+              <ThemeToggle />
             </div>
           </div>
         </header>
@@ -47,8 +66,12 @@ export default function RootLayout({
           {children}
         </main>
 
-        <footer className="py-6 text-center text-gray-400 text-xs border-t border-gray-200 mt-auto font-mono">
-          <p>INF804 &mdash; Sécurité des logiciels &mdash; Été 2026 &mdash; Groupe 2</p>
+        <footer className="py-6 text-center text-[var(--footer-text)] text-xs border-t border-[var(--footer-border)] mt-auto font-mono transition-all duration-300">
+          <p>
+            INF804 &mdash; Sécurité des logiciels &mdash; 
+            <span className="text-slate-500"> Été 2026</span> &mdash; 
+            <span className="text-accent/80 dark:text-accent-400/80 font-bold"> Groupe 2</span>
+          </p>
         </footer>
 
         <ToastProvider />

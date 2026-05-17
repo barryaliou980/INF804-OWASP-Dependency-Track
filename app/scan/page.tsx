@@ -80,10 +80,14 @@ function ScanContent() {
   }, [scanId, router]);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 mt-8">
+    <div className="max-w-5xl mx-auto space-y-8 mt-4 animate-fade-in">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900">Analyse en cours...</h1>
-        <p className="text-gray-500">Veuillez patienter pendant l&apos;interrogation de la base de données OSV</p>
+        <h1 className="text-3xl md:text-5xl font-black text-[var(--text-primary)] font-[family-name:var(--font-display)]">
+          Audit de Sécurité en <span className="bg-gradient-to-r from-accent to-accent bg-clip-text text-transparent">Direct</span>
+        </h1>
+        <p className="text-[var(--text-secondary)] text-sm md:text-base font-medium max-w-xl mx-auto">
+          Résolution des dépendances et analyse en cours sur les bases de données de vulnérabilités open-source OSV.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -101,8 +105,8 @@ function ScanContent() {
 export default function ScanPage() {
   return (
     <Suspense fallback={
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+      <div className="flex items-center justify-center py-20 bg-[var(--bg-main)] min-h-[50vh]">
+        <Loader2 className="w-8 h-8 text-accent dark:text-accent-400 animate-spin" />
       </div>
     }>
       <ScanContent />

@@ -2,13 +2,13 @@ import { UploadZone } from '@/components/upload-zone';
 
 export default function UploadPage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] max-w-4xl mx-auto space-y-8">
+    <div className="flex flex-col items-center justify-center min-h-[72vh] max-w-4xl mx-auto space-y-8 animate-fade-in">
       <div className="text-center space-y-4">
-        <h1 className="text-3xl md:text-5xl font-black tracking-tight text-gray-900">
-          Scanner vos <span className="text-emerald-600">dépendances</span>
+        <h1 className="text-4xl md:text-6xl font-black tracking-tight text-[var(--text-primary)] font-[family-name:var(--font-display)]">
+          Scanner vos <span className="text-accent-700 dark:text-accent-400">dépendances</span>
         </h1>
-        <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-          Uploadez votre fichier de dépendances. Nous l&apos;analyserons instantanément via l&apos;API OSV pour identifier les vulnérabilités CVE critiques.
+        <p className="text-base md:text-lg text-[var(--text-secondary)] max-w-2xl mx-auto leading-relaxed">
+          Sélectionnez ou glissez votre fichier manifeste de dépendances. L&apos;analyse est effectuée en direct via l&apos;API publique OSV pour cartographier vos failles de sécurité.
         </p>
       </div>
 
