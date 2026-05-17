@@ -43,7 +43,7 @@ export default function GuidePage() {
         </h2>
         <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-3">
           <p className="text-gray-600">
-            Dans votre repository, allez dans <strong>Settings -> Secrets and variables -> Actions</strong> et ajoutez :
+            Dans votre repository, allez dans <strong>Settings {"→"} Secrets and variables {"→"} Actions</strong> et ajoutez :
           </p>
           <div className="bg-gray-900 rounded-lg p-4 font-mono text-sm text-gray-300 space-y-1">
             <p><span className="text-emerald-400">DEPENDENCY_TRACK_URL</span>=https://votre-instance.example.com</p>
@@ -170,19 +170,19 @@ jobs:
         <div className="bg-white border border-gray-200 rounded-xl p-6">
           <ul className="space-y-3 text-gray-600">
             <li className="flex items-center gap-2">
-              <span className="text-emerald-600">-></span>
+              <span className="text-emerald-600">{"→"}</span>
               <a href="https://docs.dependencytrack.org/" target="_blank" rel="noreferrer" className="text-emerald-700 hover:underline font-medium">
                 Documentation officielle Dependency-Track
               </a>
             </li>
             <li className="flex items-center gap-2">
-              <span className="text-emerald-600">-></span>
+              <span className="text-emerald-600">{"→"}</span>
               <a href="https://cyclonedx.org/" target="_blank" rel="noreferrer" className="text-emerald-700 hover:underline font-medium">
                 Standard CycloneDX (format SBOM)
               </a>
             </li>
             <li className="flex items-center gap-2">
-              <span className="text-emerald-600">-></span>
+              <span className="text-emerald-600">{"→"}</span>
               <a href="https://owasp.org/www-project-dependency-track/" target="_blank" rel="noreferrer" className="text-emerald-700 hover:underline font-medium">
                 Page OWASP du projet
               </a>
