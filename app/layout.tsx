@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { JetBrains_Mono, Outfit } from "next/font/google";
 import "./globals.css";
 import { ShieldCheck } from "lucide-react";
 import { ToastProvider } from "@/components/toast-provider";
 
-const inter = Inter({ subsets: ["latin"] });
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-display" });
+const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
-  title: "DepScan - Dependency Vulnerability Scanner",
-  description: "Scanner de vulnérabilités pour vos dépendances open-source, inspiré de Dependency-Track.",
+  title: "DepScan - INF804 Sécurité des logiciels",
+  description: "Scanner de vulnérabilités pour vos dépendances open-source - Projet Groupe 2, OWASP Dependency-Track",
 };
 
 export default function RootLayout({
@@ -17,25 +18,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className="bg-[#F8F8F6]">
-      <body className={`${inter.className} min-h-screen flex flex-col`}>
-        <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-md">
+    <html lang="fr" className={`${outfit.variable} ${jetbrains.variable}`}>
+      <body className="font-sans min-h-screen flex flex-col bg-[hsl(40,20%,97%)]">
+        <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-xl">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
             <a href="/" className="flex items-center gap-3">
-              <div className="bg-[#E24B4A] p-2 rounded-lg">
-                <ShieldCheck className="w-6 h-6 text-white" />
+              <div className="bg-emerald-600 p-2 rounded-lg shadow-md">
+                <ShieldCheck className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold tracking-tight text-gray-900">DepScan</span>
-              <span className="px-2 py-1 bg-gray-100 text-gray-600 text-[10px] uppercase tracking-wider font-bold rounded-md ml-2 border border-gray-200">
-                OWASP Demo
+              <span className="text-lg font-bold tracking-tight text-gray-900 font-[family-name:var(--font-display)]">DepScan</span>
+              <span className="px-2 py-1 bg-emerald-50 text-emerald-700 text-[10px] uppercase tracking-wider font-bold rounded-md ml-1 border border-emerald-200 font-mono">
+                INF804
               </span>
             </a>
-            
+
             <div className="flex items-center gap-4">
-              <a href="https://github.com" target="_blank" rel="noreferrer" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
-                GitHub
-              </a>
-              <a href="https://osv.dev" target="_blank" rel="noreferrer" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+              <a href="https://osv.dev" target="_blank" rel="noreferrer" className="text-sm font-medium text-gray-500 hover:text-emerald-600 transition-colors font-mono">
                 OSV API
               </a>
             </div>
@@ -45,9 +43,9 @@ export default function RootLayout({
         <main className="flex-1 container mx-auto px-4 py-8 max-w-6xl">
           {children}
         </main>
-        
-        <footer className="py-6 text-center text-gray-500 text-sm border-t border-gray-200 mt-auto">
-          <p>&copy; 2025 DepScan Demo &mdash; Développé avec Next.js 14</p>
+
+        <footer className="py-6 text-center text-gray-400 text-xs border-t border-gray-200 mt-auto font-mono">
+          <p>INF804 &mdash; Sécurité des logiciels &mdash; Été 2026 &mdash; Groupe 2</p>
         </footer>
 
         <ToastProvider />
