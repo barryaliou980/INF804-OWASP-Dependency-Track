@@ -8,60 +8,40 @@ const SEVERITY_WEIGHTS = {
   NONE: 0,
 } as const;
 
-// export function calculateRiskScore(vulnerabilities: CVEResult[]): number {
-//   if (!vulnerabilities.length) return 0.0;
+export function calculateRiskScore(vulnerabilities: CVEResult[]): number {
+  if (!vulnerabilities.length) return 0.0;
 
-//   let totalRisk = 0;
+  let totalRisk = 0;
 
-//   for (const vuln of vulnerabilities) {
-//     const weight = SEVERITY_WEIGHTS[vuln.severity] ?? 0;
+  for (const vuln of vulnerabilities) {
+    const weight = SEVERITY_WEIGHTS[vuln.severity] ?? 0;
 
-//     const cvss = clamp(vuln.cvssScore ?? 0, 0, 10);
-//     const cvssFactor = cvss / 10;
+    const cvss = clamp(vuln.cvssScore ?? 0, 0, 10);
+    const cvssFactor = cvss / 10;
 
-//     let risk = weight * cvssFactor;
+    let risk = weight * cvssFactor;
 
-//     // bonus léger
-//     if (cvss >= 9) risk *= 1.1;
-//     else if (cvss >= 7) risk *= 1.05;
+    if (cvss >= 9) risk *= 1.1;
+    else if (cvss >= 7) risk *= 1.05;
 
-//     totalRisk += risk;
-//   }
-
-//   const n = vulnerabilities.length;
-
-//   const maxRisk = 10 * Math.log1p(n + 5);
-
-//   const rawScore =
-//     Math.log1p(totalRisk) / Math.log1p(maxRisk);
-
-//   let score = 10 * Math.pow(rawScore, 0.9);
-
-//   // 🔥 saturation globale (clé industry)
-//   const saturation = 1 - Math.exp(-n / 15);
-//   score *= saturation;
-
-//   return Number(clamp(score, 0, 10).toFixed(2));
-// }
-
-// function clamp(value: number, min: number, max: number) {
-//   return Math.min(max, Math.max(min, value));
-// }
-
-export function calculateRiskScore(
-  vulnerabilities: CVEResult[]
-): number {
-  if (!vulnerabilities.length) {
-    return 0;
+    totalRisk += risk;
   }
 
-  const totalCvss = vulnerabilities.reduce(
-    (sum, vuln) => sum + (vuln.cvssScore || 0),
-    0
-  );
+  const n = vulnerabilities.length;
 
-  const averageCvss =
-    totalCvss / vulnerabilities.length;
+  const maxRisk = 10 * Math.log1p(n + 5);
 
-  return Number(averageCvss.toFixed(2));
+  const rawScore =
+    Math.log1p(totalRisk) / Math.log1p(maxRisk);
+
+  let score = 10 * Math.pow(rawScore, 0.9);
+
+  const saturation = 1 - Math.exp(-n / 15);
+  score *= saturation;
+
+  return Number(clamp(score, 0, 10).toFixed(2));
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
 }

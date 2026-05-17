@@ -13,7 +13,7 @@ interface FeedEvent {
   package?: string;
   cve?: string;
   severity?: string;
-  status?: string;
+  status?: 'safe' | 'vuln' | 'info';
   timestamp: number;
 }
 

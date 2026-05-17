@@ -47,6 +47,12 @@ export default function ResultsLayout({
 
         <div className="flex items-center gap-3">
           <ExportButton scanId={data.scanId} />
+          <a
+            href="/upload"
+            className="inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 bg-emerald-600 hover:bg-emerald-700 text-white h-10 px-4 py-2"
+          >
+            Nouveau Scan
+          </a>
         </div>
       </div>
 

@@ -30,8 +30,11 @@ export function DepGraph({ data }: DepGraphProps) {
 
     const links: GraphEdge[] = [];
 
+    // Première passe : créer tous les nœuds
+    const nodeIds = new Set<string>();
+    nodeIds.add('root');
+
     data.dependencies.forEach(item => {
-      // Identifier la sévérité max
       let maxSeverity: any = 'SAFE';
       let maxScore = 0;
 
@@ -42,15 +45,14 @@ export function DepGraph({ data }: DepGraphProps) {
         }
       });
 
-      // Si filter === 'CRITICAL_ONLY', on ignore les noeuds non critiques
       if (filter === 'CRITICAL_ONLY' && maxSeverity !== 'CRITICAL' && maxSeverity !== 'HIGH') {
         return;
       }
 
-      const nodeId = item.dependency.name;
-      
-      // Éviter les doublons de noeuds (au cas où plusieurs versions existent)
-      if (!nodes.some(n => n.id === nodeId)) {
+      const nodeId = `${item.dependency.name}@${item.dependency.version}`;
+
+      if (!nodeIds.has(nodeId)) {
+        nodeIds.add(nodeId);
         nodes.push({
           id: nodeId,
           name: item.dependency.name,
@@ -60,9 +62,24 @@ export function DepGraph({ data }: DepGraphProps) {
           cveIds: item.vulnerabilities.map(v => v.id)
         });
       }
+    });
+
+    // Deuxième passe : créer les liens (seulement si source existe)
+    data.dependencies.forEach(item => {
+      const nodeId = `${item.dependency.name}@${item.dependency.version}`;
+      if (!nodeIds.has(nodeId)) return;
+
+      const parentRaw = item.dependency.parent;
+      let sourceId = 'root';
+
+      if (parentRaw) {
+        // Chercher un nœud dont le nom correspond au parent
+        const parentNode = nodes.find(n => n.name === parentRaw);
+        sourceId = parentNode ? parentNode.id : 'root';
+      }
 
       links.push({
-        source: item.dependency.parent || 'root',
+        source: sourceId,
         target: nodeId
       });
     });
@@ -200,7 +217,7 @@ export function DepGraph({ data }: DepGraphProps) {
         linkDirectionalArrowLength={3.5}
         linkDirectionalArrowRelPos={1}
         onNodeClick={handleNodeClick}
-        onNodeDoubleClick={handleNodeDoubleClick}
+        {...{ onNodeDoubleClick: handleNodeDoubleClick } as any}
         nodeCanvasObjectMode={() => 'after'}
         nodeCanvasObject={(node: any, ctx, globalScale) => {
           // Animation de pulsation pour les noeuds critiques
