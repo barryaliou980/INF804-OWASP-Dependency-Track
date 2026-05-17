@@ -33,6 +33,9 @@ export default function RootLayout({
             </a>
 
             <div className="flex items-center gap-4">
+              <a href="/guide" className="text-sm font-medium text-gray-500 hover:text-emerald-600 transition-colors">
+                GitHub Actions
+              </a>
               <a href="https://osv.dev" target="_blank" rel="noreferrer" className="text-sm font-medium text-gray-500 hover:text-emerald-600 transition-colors font-mono">
                 OSV API
               </a>

@@ -323,7 +323,7 @@ export async function queryOSV(dependencies: Dependency[]): Promise<Array<{ depe
     }
   }
 
-  // Dépendances sans version → pas de lookup
+  // Dépendances sans version -> pas de lookup
   dependencies.filter(d => d.version === 'unknown').forEach(dep => {
     results.push({ dependency: dep, vulnerabilities: [] });
   });
