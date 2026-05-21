@@ -1,0 +1,56 @@
+name: Dependency Vulnerability Scan
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Installer les dependances
+        run: npm ci
+
+      - name: Generer le SBOM (CycloneDX)
+        run: npx @cyclonedx/cyclonedx-npm --output-file sbom.json --output-format JSON
+
+      - name: Scanner les vulnerabilites via OSV
+        run: |
+          curl -X POST "https://api.osv.dev/v1/querybatch" \
+            -H "Content-Type: application/json" \
+            -d @sbom.json > osv-results.json
+
+      - name: Verifier les vulnerabilites critiques
+        run: |
+          CRITICAL=$(cat osv-results.json | grep -c '"CRITICAL"' || true)
+          if [ "$CRITICAL" -gt 0 ]; then
+            echo "!! $CRITICAL vulnerabilite(s) critique(s) detectee(s) !"
+            exit 1
+          else
+            echo "Aucune vulnerabilite critique detectee."
+          fi
+
+      - name: Afficher le rapport
+        if: always()
+        run: cat osv-results.json
+
+      - name: Upload du rapport en artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vulnerability-report
+          path: |
+            sbom.json
+            osv-results.json
