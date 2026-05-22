@@ -28,12 +28,14 @@ jobs:
 
       - name: Upload SBOM vers Dependency-Track
         run: |
-          BOM_CONTENT=$(base64 -w 0 bom.json)
+          jq -n --arg bom "$(base64 -w 0 bom.json)" \
+            '{"projectName":"demo-dep-track","projectVersion":"1.0.0","autoCreate":true,"bom":$bom}' \
+            > payload.json
           curl -sf -X PUT \
             -H "Content-Type: application/json" \
             -H "X-Api-Key: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}" \
             -H "ngrok-skip-browser-warning: true" \
-            -d "{\"projectName\": \"demo-dep-track\", \"projectVersion\": \"1.0.0\", \"autoCreate\": true, \"bom\": \"$BOM_CONTENT\"}" \
+            -d @payload.json \
             "${{ secrets.DEPENDENCY_TRACK_URL }}/api/v1/bom"
 
       - name: Attendre l'analyse Dependency-Track
