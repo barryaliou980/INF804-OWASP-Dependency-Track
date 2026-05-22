@@ -28,7 +28,8 @@ jobs:
 
       - name: Upload SBOM vers Dependency-Track
         run: |
-          jq -n --arg bom "$(base64 -w 0 bom.json)" \
+          base64 -w 0 bom.json > bom.b64
+          jq -n --rawfile bom bom.b64 \
             '{"projectName":"demo-dep-track","projectVersion":"1.0.0","autoCreate":true,"bom":$bom}' \
             > payload.json
           curl -sf -X PUT \
@@ -43,7 +44,8 @@ jobs:
 
       - name: Verifier le score de risque
         run: |
-          RISK_SCORE=$(curl -s -H "X-Api-Key: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}" \
+          RISK_SCORE=$(curl -s \
+            -H "X-Api-Key: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}" \
             -H "ngrok-skip-browser-warning: true" \
             "${{ secrets.DEPENDENCY_TRACK_URL }}/api/v1/project/lookup?name=demo-dep-track&version=1.0.0" \
             | node -e "
