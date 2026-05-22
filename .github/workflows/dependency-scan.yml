@@ -27,14 +27,14 @@ jobs:
         run: npx @cyclonedx/cyclonedx-npm --output-file bom.json --output-format JSON
 
       - name: Upload SBOM vers Dependency-Track
-        uses: DependencyTrack/gh-upload-sbom@v3
-        with:
-          serverhostname: ${{ secrets.DEPENDENCY_TRACK_URL }}
-          apikey: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}
-          projectname: demo-dep-track
-          projectversion: 1.0.0
-          bomfilename: bom.json
-          autocreate: true
+        run: |
+          BOM_CONTENT=$(base64 -w 0 bom.json)
+          curl -sf -X PUT \
+            -H "Content-Type: application/json" \
+            -H "X-Api-Key: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}" \
+            -H "ngrok-skip-browser-warning: true" \
+            -d "{\"projectName\": \"demo-dep-track\", \"projectVersion\": \"1.0.0\", \"autoCreate\": true, \"bom\": \"$BOM_CONTENT\"}" \
+            "${{ secrets.DEPENDENCY_TRACK_URL }}/api/v1/bom"
 
       - name: Attendre l'analyse Dependency-Track
         run: sleep 15
@@ -42,6 +42,7 @@ jobs:
       - name: Verifier le score de risque
         run: |
           RISK_SCORE=$(curl -s -H "X-Api-Key: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}" \
+            -H "ngrok-skip-browser-warning: true" \
             "${{ secrets.DEPENDENCY_TRACK_URL }}/api/v1/project/lookup?name=demo-dep-track&version=1.0.0" \
             | node -e "
               const data = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
