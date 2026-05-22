@@ -1,6 +1,6 @@
-# DepScan - OWASP Dependency Vulnerability Scanner
+# DepScan - OWASP Dependency-Track
 
-DepScan est un outil de détection de vulnérabilités dans les dépendances inspiré par OWASP Dependency-Track. Il analyse les fichiers de dépendances (comme `requirements.txt` et `package.json`) et interroge l'API publique OSV pour identifier les vulnérabilités CVE.
+DepScan est un outil de detection de vulnerabilites dans les dependances base sur OWASP Dependency-Track. Il analyse les fichiers de dependances (comme `requirements.txt` et `package.json`), genere un SBOM et l'envoie a une instance Dependency-Track pour identifier les vulnerabilites CVE.
 
 ## Technologies
 
@@ -8,32 +8,51 @@ DepScan est un outil de détection de vulnérabilités dans les dépendances ins
 - **TypeScript**
 - **Tailwind CSS**
 - **react-force-graph-2d** (Graphe interactif)
-- **API OSV** (Base de données de vulnérabilités open source)
+- **OWASP Dependency-Track** (Analyse de vulnerabilites)
+- **CycloneDX** (Format SBOM)
 
 ## Lancement rapide
 
-1. Installez les dépendances :
+1. Installez les dependances :
    ```bash
    npm install
    ```
 
-2. Créez votre fichier d'environnement (optionnel, activé par défaut en mode démo si non défini) :
-   ```bash
-   cp .env.example .env.local
-   ```
-   > **Note** : Si `NEXT_PUBLIC_DEMO_MODE=true`, l'application utilisera des données factices pour la démonstration et n'appellera pas réellement l'API OSV afin de garantir un affichage peu importe l'état du réseau ou les limites de taux. Mettez-le à `false` ou supprimez-le pour utiliser la vraie API.
-
-3. Lancez le serveur de développement :
+2. Lancez le serveur de developpement :
    ```bash
    npm run dev
    ```
 
-4. Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
+3. Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
 
 ## Utilisation
 
-1. Sur la page d'accueil, glissez-déposez un fichier `requirements.txt` ou `package.json`.
-2. L'analyse s'effectue en temps réel (ou simulée en mode démo) avec un flux (Live Feed).
-3. Consultez le tableau de bord des résultats avec les statistiques de vulnérabilités (Critical, High, Medium, Safe).
-4. Naviguez vers l'onglet **Graphe de dépendances** pour visualiser vos composants sous forme de graphe interactif.
+1. Sur la page d'accueil, glissez-deposez un fichier `requirements.txt` ou `package.json`.
+2. L'analyse s'effectue en temps reel avec un flux (Live Feed).
+3. Consultez le tableau de bord des resultats avec les statistiques de vulnerabilites (Critical, High, Medium, Safe).
+4. Naviguez vers l'onglet **Graphe de dependances** pour visualiser vos composants sous forme de graphe interactif.
 5. Exportez un **SBOM (Software Bill of Materials)** au format CycloneDX.
+
+## CI/CD - GitHub Actions
+
+Un workflow GitHub Actions est integre (`.github/workflows/dependency-scan.yml`). Il se declenche sur chaque push (`main`/`develop`) et sur les pull requests vers `main`.
+
+Le pipeline :
+1. Installe les dependances via `npm ci`
+2. Genere un SBOM au format CycloneDX
+3. Upload le SBOM vers l'instance Dependency-Track
+4. Verifie le score de risque et bloque le build si le seuil est depasse (> 70)
+5. Sauvegarde le SBOM en artifact telechargeables
+
+### Configuration requise
+
+Ajoutez ces secrets dans **Settings > Secrets and variables > Actions** :
+
+| Secret | Description |
+|---|---|
+| `DEPENDENCY_TRACK_URL` | URL de votre instance Dependency-Track |
+| `DEPENDENCY_TRACK_API_KEY` | Cle API avec permissions d'upload |
+
+## Infrastructure
+
+L'instance Dependency-Track est hebergee sur **Oracle Cloud Free Tier** (VM ARM, 4 OCPU, 24 Go RAM) via Docker Compose.

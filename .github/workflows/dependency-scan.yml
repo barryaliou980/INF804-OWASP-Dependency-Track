@@ -1,4 +1,4 @@
-name: Dependency Vulnerability Scan
+name: OWASP Dependency-Track Scan
 
 on:
   push:
@@ -24,33 +24,41 @@ jobs:
         run: npm ci
 
       - name: Generer le SBOM (CycloneDX)
-        run: npx @cyclonedx/cyclonedx-npm --output-file sbom.json --output-format JSON
+        run: npx @cyclonedx/cyclonedx-npm --output-file bom.json --output-format JSON
 
-      - name: Scanner les vulnerabilites via OSV
-        run: |
-          curl -X POST "https://api.osv.dev/v1/querybatch" \
-            -H "Content-Type: application/json" \
-            -d @sbom.json > osv-results.json
+      - name: Upload SBOM vers Dependency-Track
+        uses: DependencyTrack/gh-upload-sbom@v3
+        with:
+          serverhostname: ${{ secrets.DEPENDENCY_TRACK_URL }}
+          apikey: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}
+          project-name: ${{ github.repository }}
+          project-version: ${{ github.ref_name }}
+          bom-filename: bom.json
+          auto-create: true
 
-      - name: Verifier les vulnerabilites critiques
+      - name: Attendre l'analyse Dependency-Track
+        run: sleep 15
+
+      - name: Verifier le score de risque
         run: |
-          CRITICAL=$(cat osv-results.json | grep -c '"CRITICAL"' || true)
-          if [ "$CRITICAL" -gt 0 ]; then
-            echo "!! $CRITICAL vulnerabilite(s) critique(s) detectee(s) !"
+          RISK_SCORE=$(curl -s -H "X-Api-Key: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}" \
+            "${{ secrets.DEPENDENCY_TRACK_URL }}/api/v1/project/lookup?name=${{ github.repository }}&version=${{ github.ref_name }}" \
+            | node -e "
+              const data = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+              console.log(data.lastInheritedRiskScore || 0);
+            ")
+          echo "RISK_SCORE=$RISK_SCORE" >> $GITHUB_ENV
+          echo "Score de risque: $RISK_SCORE"
+          if [ "$RISK_SCORE" -gt 70 ]; then
+            echo "!! Score de risque trop eleve ($RISK_SCORE > 70)"
             exit 1
           else
-            echo "Aucune vulnerabilite critique detectee."
+            echo "Score de risque acceptable ($RISK_SCORE <= 70)"
           fi
 
-      - name: Afficher le rapport
-        if: always()
-        run: cat osv-results.json
-
-      - name: Upload du rapport en artifact
+      - name: Upload du SBOM en artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: vulnerability-report
-          path: |
-            sbom.json
-            osv-results.json
+          name: sbom-report
+          path: bom.json
