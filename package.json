@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "lodash": "4.17.20",
     "lucide-react": "^0.378.0",
     "next": "^14.2.35",
     "react": "^18",
@@ -17,7 +16,11 @@
     "react-dropzone": "^14.2.3",
     "react-force-graph-2d": "^1.29.1",
     "react-hot-toast": "^2.6.0",
-    "zod": "^3.23.6"
+    "zod": "^3.23.6",
+    "lodash": "4.17.11",
+    "axios": "0.21.0",
+    "minimist": "0.0.8"
+
   },
   "devDependencies": {
     "@types/node": "^20",
