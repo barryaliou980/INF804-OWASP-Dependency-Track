@@ -31,10 +31,10 @@ jobs:
         with:
           serverhostname: ${{ secrets.DEPENDENCY_TRACK_URL }}
           apikey: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}
-          project-name: ${{ github.repository }}
-          project-version: ${{ github.ref_name }}
-          bom-filename: bom.json
-          auto-create: true
+          projectname: demo-dep-track
+          projectversion: 1.0.0
+          bomfilename: bom.json
+          autocreate: true
 
       - name: Attendre l'analyse Dependency-Track
         run: sleep 15
@@ -42,7 +42,7 @@ jobs:
       - name: Verifier le score de risque
         run: |
           RISK_SCORE=$(curl -s -H "X-Api-Key: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}" \
-            "${{ secrets.DEPENDENCY_TRACK_URL }}/api/v1/project/lookup?name=${{ github.repository }}&version=${{ github.ref_name }}" \
+            "${{ secrets.DEPENDENCY_TRACK_URL }}/api/v1/project/lookup?name=demo-dep-track&version=1.0.0" \
             | node -e "
               const data = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
               console.log(data.lastInheritedRiskScore || 0);
